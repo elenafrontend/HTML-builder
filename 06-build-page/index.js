@@ -10,6 +10,8 @@ let templateContent = '';
 const htmlDist = path.join(projectDist, 'index.html');
 const assets = path.join(__dirname, 'assets');
 const assetsDist = path.join(projectDist, 'assets');
+const styles = path.join(__dirname, 'styles');
+const bundleCss = path.join(projectDist, 'style.css');
 
 const copyDir = (source, copy) => {
   fs.mkdir(copy, {recursive: true}, err => {
@@ -55,16 +57,36 @@ const buildHtml = () => {
   });
 };
 
-fs.access(assetsDist, err => {
-  if(err) {
-    copyDir(assets, assetsDist);
-  } else {
-    fs.rm(assetsDist, { recursive: true }, (err) => {
-      if(err) console.log('Directory didn\'t delete', err.message);
-      copyDir(assets, assetsDist);
+const buildCss = () => {
+  fs.writeFile(bundleCss, '', err => {
+    if(err) console.log('Error', err.message);
+  
+    fs.readdir(styles, (err, data) => {
+      if(err) console.log('Error', err.message); 
+    
+      data.forEach(file => {
+        const filePath = path.join(styles, file);
+    
+        fs.stat(filePath, (err, stats) => {
+          if(err) console.log('Error', err.message);
+          
+          const extention = path.extname(file);
+          if(!stats.isDirectory() && extention === '.css') {
+            fs.readFile(filePath, 'utf-8', (err, data) => {
+              if(err) console.log('Error', err.message);
+  
+              fs.appendFile(bundleCss, data, err => {
+                if(err) console.log('Error', err.message);
+              });
+            });
+          }
+        });
+      });
     });
-  }
-});
+  });
+};
+
+
 
 
 fs.mkdir(projectDist, { recursive: true }, err => {
@@ -73,5 +95,18 @@ fs.mkdir(projectDist, { recursive: true }, err => {
   const templateRead = fs.createReadStream(templatePath, 'utf-8');
   templateRead.on('data', chunk => templateContent += chunk);
   templateRead.on('end', buildHtml);
+
+  buildCss();
+
+  fs.access(assetsDist, err => {
+    if(err) {
+      copyDir(assets, assetsDist);
+    } else {
+      fs.rm(assetsDist, { recursive: true }, (err) => {
+        if(err) console.log('Directory didn\'t delete', err.message);
+        copyDir(assets, assetsDist);
+      });
+    }
+  });
 });
 
