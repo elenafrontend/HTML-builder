@@ -1,4 +1,3 @@
-require('colors');
 const fs = require('fs');
 const path = require('path');
 
@@ -17,7 +16,7 @@ fs.readdir(folder, (err, data) => {
         const extention = path.extname(file).slice(1);
         const fileName = path.parse(file).name;
         const size = stats.size / 1000;
-        console.log(`${fileName} - ${extention} - ${size}kB`.rainbow);
+        console.log(`${fileName} - ${extention} - ${size}kB`);
       }
     });
   });
