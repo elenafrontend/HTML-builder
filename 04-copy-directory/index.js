@@ -4,37 +4,43 @@ const path = require('path');
 const copyFolderPath = path.join(__dirname, 'files-copy');
 const sourceFolderPath = path.join(__dirname, 'files');
 
-const copyDir = () => {
-  fs.mkdir(copyFolderPath, {recursive: true}, err => {
+const copyDir = (source, copy) => {
+  fs.mkdir(copy, {recursive: true}, err => {
     if(err) console.log('Directory hasn\'t been maked', err.message);
 
-    fs.readdir(sourceFolderPath, (err, data) => {
+    fs.readdir(source, (err, data) => {
       if(err) console.log('Error', err.message);
   
       data.forEach(file => {
-        const sourceFile = path.join(__dirname, 'files', file);
-        const copyFile = path.join(__dirname, 'files-copy', file);
-  
-        fs.copyFile(sourceFile, copyFile, err => {
-          if(err) throw err;
+        const sourceFile = path.join(source, file);
+        const copyFile = path.join(copy, file);
+
+        fs.stat(sourceFile, (err, stats) => {
+          if(err) console.log('Error', err.message);
+    
+          if(stats.isDirectory()) {
+            copyDir(sourceFile, copyFile);
+          } else {
+            fs.copyFile(sourceFile, copyFile, err => {
+              if(err) console.log(`${sourceFile} hasn't been copied`, err.message);
+            });
+          }
         });
+  
       });
     });
   });
 };
 
-
-
-
 fs.access(copyFolderPath, err => {
   if(err) {
-    copyDir();
+    copyDir(sourceFolderPath, copyFolderPath);
   } else {
     console.log('Directory exists');
 
     fs.rm(copyFolderPath, { recursive: true }, (err) => {
       if(err) console.log('Directory didn\'t delete', err.message);
-      copyDir();
+      copyDir(sourceFolderPath, copyFolderPath);
     });
   }
 });
