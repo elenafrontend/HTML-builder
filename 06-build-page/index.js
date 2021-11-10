@@ -5,7 +5,9 @@ const path = require('path');
 
 const projectDist = path.join(__dirname, 'project-dist');
 const components= path.join(__dirname, 'components');
-const templatePath= path.join(__dirname, 'template.html');
+const templatePath = path.join(__dirname, 'template.html');
+let templateContent = '';
+const htmlDist = path.join(projectDist, 'index.html');
 const assets = path.join(__dirname, 'assets');
 const assetsDist = path.join(projectDist, 'assets');
 
@@ -37,6 +39,22 @@ const copyDir = (source, copy) => {
   });
 };
 
+const searchTags = () => templateContent.match(/{{[a-zA-Z]*}}/gi);
+
+const buildHtml = () => {
+  const tags = searchTags();
+  tags.forEach(tag => {
+    const tagName = tag.slice(2, -2);
+    const component = path.join(components, `${tagName}.html`);
+    fs.promises.readFile(component, 'utf-8').then(data => {
+      templateContent = templateContent.replace(tag, data);
+      fs.writeFile(htmlDist, templateContent, err => {
+        if(err) console.log('Template hasn\'t been writen', err.message);
+      });
+    });
+  });
+};
+
 fs.access(assetsDist, err => {
   if(err) {
     copyDir(assets, assetsDist);
@@ -48,34 +66,12 @@ fs.access(assetsDist, err => {
   }
 });
 
-// fs.mkdir(projectDist, { recursive: true }, err => {
-//   if(err) console.log('Error', err.message);
 
-  
-// });
+fs.mkdir(projectDist, { recursive: true }, err => {
+  if(err) console.log(`Directory ${projectDist} hasn't been maked`, err.message);
 
-//   fs.readFile(templatePath, 'utf8', (err, data) => {
-//     if(err) console.log('Error', err.message);
-
-//     const templateData = data.split(' ');
-//     console.log(templateData);
-
-//     fs.readdir(components, (err, data) => {
-//       if(err) console.log('Error', err.message);
-
-//       data.forEach(component => {
-//         const componentPath = path.join(components, component);
-//         const componentName = path.parse(component).name;
-
-//         fs.readFile(componentPath, 'utf-8', (err, componentData) => {
-//           if(err) console.log('Error', err.message);
-
-//           templateData.
-          
-//         });
-//       });
-//     });
-//   });
-
-
+  const templateRead = fs.createReadStream(templatePath, 'utf-8');
+  templateRead.on('data', chunk => templateContent += chunk);
+  templateRead.on('end', buildHtml);
+});
 
