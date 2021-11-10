@@ -1,5 +1,4 @@
 // const process = require('process');
-require('colors');
 const { stdin, stdout, exit } = process;
 const fs = require('fs');
 const path = require('path');
@@ -7,7 +6,7 @@ const path = require('path');
 const file = path.join(__dirname, 'text.txt');
 
 function printBye() {
-  stdout.write('Удачи в дальнейшем обучении!'.brightYellow);
+  stdout.write('Удачи в дальнейшем обучении!');
   exit();
 }
 
@@ -16,7 +15,7 @@ fs.writeFile(file, '', error => {
   if(error) console.log('Error', error.message);
 });
 
-stdout.write('Введите, пожалуйста, данные для файла\n'.rainbow);
+stdout.write('Введите, пожалуйста, данные для файла\n');
 
 stdin.on('data', data => {
   const text = data.toString().trim();
